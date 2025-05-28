@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/admin.css' %}" />
+{% endblock %}
+
+{% block title %}
+  Admin Dashboard - Task Management
+{% endblock %}
+
+{% block content %}
+  <div class="admin-dashboard">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header fade-in">
+      <h2 class="dashboard-title">Admin Dashboard</h2>
+      <p class="dashboard-subtitle">Manage users and monitor task progress</p>
+      <div class="dashboard-stats">
+        <div class="stat-card">
+          <div class="stat-number">{{ users|length }}</div>
+          <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">
+            {% with total_tasks=0 %}
+              {% for user in users %}
+                {% with total_tasks=total_tasks|add:user.tasks.all|length %}
+                {% endwith %}
+              {% endfor %}
+              {{ total_tasks }}
+            {% endwith %}
+          </div>
+          <div class="stat-label">Total Tasks</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users Grid -->
+    <div class="users-grid">
+      {% for user in users %}
+        <div class="user-card card fade-in" style="animation-delay: {{ forloop.counter0|add:'0.1' }}s">
+          <div class="user-card-header">
+            <div class="user-info">
+              <div class="user-avatar">{{ user.email|first|upper }}</div>
+              <div class="user-details">
+                <h3 class="user-name">{{ user.email }}</h3>
+                <span class="user-role role-indicator 
+                            {% if user.role == 'SUPERADMIN' %}
+                    role-superadmin
+
+                  {% elif user.role == 'ADMIN' %}
+                    role-admin
+
+                  {% else %}
+                    role-user
+                  {% endif %}">
+                  {{ user.role|default:'USER' }}
+                </span>
+              </div>
+            </div>
+            <div class="task-count">
+              <span class="task-badge">{{ user.tasks.all|length }} task{{ user.tasks.all|length|pluralize }}</span>
+            </div>
+          </div>
+
+          <div class="user-tasks">
+            {% for task in user.tasks.all %}
+              <div class="task-item">
+                <div class="task-info">
+                  <h4 class="task-title">{{ task.title }}</h4>
+                  <div class="task-meta">
+                    <span class="task-status status-{{ task.status|lower }}">{{ task.status }}</span>
+                    {% if task.due_date %}
+                      <span class="task-due-date">📅 {{ task.due_date|date:'M d, Y' }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="task-actions">
+                  <a href="{% url 'task_detail' task.id %}" class="btn-task-view" title="View Task Details">👁️ View</a>
+                </div>
+              </div>
+            {% empty %}
+              <div class="no-tasks">
+                <div class="no-tasks-icon">📝</div>
+                <p class="no-tasks-text">No tasks assigned</p>
+              </div>
+            {% endfor %}
+          </div>
+
+          {% if user.tasks.all %}
+            <div class="user-card-footer">
+              <div class="progress-summary">
+                {% with completed_count=user.tasks.all|length %}
+                  <!-- You can add task status filtering here if needed -->
+                  <small class="progress-text">Managing {{ user.tasks.all|length }} active task{{ user.tasks.all|length|pluralize }}</small>
+                {% endwith %}
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      {% empty %}
+        <div class="empty-state">
+          <div class="empty-state-icon">👥</div>
+          <h3>No Users Found</h3>
+          <p>There are no users in the system yet.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}

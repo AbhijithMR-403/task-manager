@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}Task Management{% endblock %}</title>
+    {% block extra_css %}{% endblock %}
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="{% url 'dashboard' %}" class="nav-link">Home</a></li>
+
+            {% if request.user.role == 'SUPERADMIN' %}
+                <li><a href="{% url 'admin_dashboard' %}" class="nav-link">SuperAdmin Panel</a></li>
+                <li><span class="role-indicator role-superadmin">SuperAdmin</span></li>
+            {% elif request.user.role == 'ADMIN' %}
+                <li><a href="{% url 'admin_dashboard' %}" class="nav-link">Admin Panel</a></li>
+                <li><span class="role-indicator role-admin">Admin</span></li>
+            {% else %}
+                <li><a href="#" class="nav-link">My Tasks</a></li>
+                <li><span class="role-indicator role-user">User</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <div class="container">
+        {% block content %}
+        <div class="hero fade-in">
+            <h1>Task Management System</h1>
+            <p>Organize, prioritize, and accomplish your goals efficiently</p>
+        </div>
+        
+        <div class="content-block fade-in">
+            <h2>Welcome to your workspace</h2>
+            <p>This is where your main content will appear. The template is now ready with modern styling, responsive design, and role-based navigation.</p>
+        </div>
+        {% endblock %}
+    </div>
+
+    <script>
+        // Add active class to current page
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentLocation = location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentLocation) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
