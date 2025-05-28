@@ -2,6 +2,9 @@
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from core.models import Task, User  # Replace `taskmanager` with your app name
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib import messages
 
 # Check if the user is Admin or SuperAdmin
 def is_admin(user):
@@ -22,11 +25,25 @@ def task_detail_view(request, task_id):
     return render(request, 'task_detail.html', context)
 
 def dashboard(request):
-    # user = request.user
-
-    # if user.role == 'SUPERADMIN':
-    #     return redirect('admin_dashboard')
-    # elif user.role == 'ADMIN':
-    #     return redirect('admin_dashboard')
-    # else:
         return render(request, 'user_dashboard.html', {'user': "user"})
+
+def user_login(request):
+    if request.method == "POST":
+        print("POST request received for login")
+        form = AuthenticationForm(request, data=request.POST)
+        print(request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            print(user)
+            print(user.role)
+            if user.role == 'SUPERADMIN':
+                messages.error(request, "Users cannot log in directly. Please contact your Admin.")
+                return redirect("admin_dashboard")
+            login(request, user)
+            return redirect("home")
+        else:
+            messages.error(request, "Invalid username or password.")
+    else:
+        form = ""
+
+    return render(request, "user_login.html", {"form": form})
