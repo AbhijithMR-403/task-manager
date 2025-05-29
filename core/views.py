@@ -10,15 +10,16 @@ from django.contrib import messages
 def is_admin(user):
     return user.role in ['ADMIN', 'SUPERADMIN']
 
+@login_required(login_url="/login/")
+def admin_dashboard_view(request):
+    view_type = request.GET.get("view", "users")
+    context = {"view_type": view_type}
+    context["users"] = User.objects.all()
+    context["tasks"] = Task.objects.all()
+    return render(request, "admin_dashboard.html", context)
+
 # @login_required
 # @user_passes_test(is_admin)
-def admin_dashboard_view(request):
-    users = User.objects.filter(role='USER')
-    context = {'users': users}
-    return render(request, 'admin_dashboard.html', context)
-
-@login_required
-@user_passes_test(is_admin)
 def task_detail_view(request, task_id):
     task = get_object_or_404(Task, id=task_id)
     context = {'task': task}
@@ -36,10 +37,10 @@ def user_login(request):
             user = form.get_user()
             print(user)
             print(user.role)
-            if user.role == 'SUPERADMIN':
-                messages.error(request, "Users cannot log in directly. Please contact your Admin.")
-                return redirect("admin_dashboard")
             login(request, user)
+            if user.role == 'SUPERADMIN':
+                messages.success(request, "Users cannot log in directly. Please contact your Admin.")
+                return redirect("admin_dashboard")
             return redirect("home")
         else:
             messages.error(request, "Invalid username or password.")
