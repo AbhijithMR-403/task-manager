@@ -19,7 +19,7 @@
             </a>
             
             <div class="user-info">
-                <p class="username">John Doe</p>
+                <p class="username">{{request.user.username}}</p>
                 <form id="logout-form" method="POST" action="/logout/">
                     {% csrf_token %}
                 <button class="btn btn-logout" type="submit" title="Logout">
@@ -37,7 +37,7 @@
             <!-- Welcome Section -->
             <div class="content-card">
                 <div class="welcome-section">
-                    <h1 class="welcome-title">Welcome back, John!</h1>
+                    <h1 class="welcome-title">Welcome back, {{request.user.username}}!</h1>
                     <p class="welcome-subtitle">Ready to manage your tasks efficiently?</p>
                 </div>
             </div>
@@ -49,5 +49,48 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    {% if messages %}
+      <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      let toastQueue = [];
+      let activeToasts = 0;
+      const maxToasts = 2;
+
+      function showNextToast() {
+        if (toastQueue.length === 0 || activeToasts >= maxToasts) return;
+
+        const msg = toastQueue.shift();
+        activeToasts++;
+
+        const toast = Toastify({
+          text: msg.text,
+          duration: 3000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: msg.bgColor,
+          stopOnFocus: true,
+          callback: () => {
+            activeToasts--;
+            showNextToast();
+          }
+        });
+
+        toast.showToast();
+      }
+
+      {% for message in messages %}
+      toastQueue.push({
+        text: "{{ message|escapejs }}",
+        bgColor: "{% if message.tags == 'error' %}#dc3545{% elif message.tags == 'success' %}#198754{% elif message.tags == 'warning' %}#ffc107{% else %}#0d6efd{% endif %}"
+      });
+      {% endfor %}
+
+      // Start showing the first toasts
+      showNextToast();
+      showNextToast();
+    });
+  </script>
+    {% endif %}
 </body>
 </html>

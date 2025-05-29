@@ -1,3 +1,4 @@
+from datetime import date
 from rest_framework import serializers
 from core.models import Task, User
 
@@ -6,6 +7,10 @@ class TaskSerializer(serializers.ModelSerializer):
         model = Task
         fields = '__all__'
 
+    def validate_due_date(self, value):
+        if value <= date.today():
+            raise serializers.ValidationError("Due date must be in the future.")
+        return value
 
 class TaskUpdateSerializer(serializers.ModelSerializer):
     class Meta:

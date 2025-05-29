@@ -1,6 +1,7 @@
 # Create your views here.
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.urls import reverse
 from core.models import Task, User  # Replace `taskmanager` with your app name
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
@@ -9,19 +10,25 @@ from django.db.models import Q
 from django.contrib.auth import logout
 from django.views.decorators.cache import cache_control
 
-# Check if the user is Admin or SuperAdmin
-def is_admin(user):
-    return user.role in ['ADMIN', 'SUPERADMIN']
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
-@login_required(login_url="/login/")
+@login_required
 def admin_dashboard_view(request):
-    view_type = request.GET.get("view", "users")
+    if request.user.role not in ['SUPERADMIN', 'ADMIN']:
+        messages.error(request, "You do not have permission to access that page.")
+        return redirect('home')
+    view_type = request.GET.get("view", "tasks")
     context = {"view_type": view_type}
-    context["users"] = User.objects.all()
-    context["tasks"] = Task.objects.all()
+    if request.user.role == "SUPERADMIN":
+        context["users"] = User.objects.all()
+        context["tasks"] = Task.objects.all()
+    else:
+        assigned_users = User.objects.filter(assigned_admin=request.user.id)
+        context["users"] = assigned_users
+        context["tasks"] = Task.objects.filter(assigned_to__in=assigned_users)
+
     return render(request, "admin_dashboard.html", context)
 
-# @login_required
+@login_required
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def task_detail_view(request, task_id):
     task = get_object_or_404(Task, id=task_id)
@@ -30,6 +37,7 @@ def task_detail_view(request, task_id):
 
     return render(request, 'task_detail.html', context)
 
+@login_required
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def home_page(request):
     user = request.user
@@ -41,9 +49,7 @@ def user_login(request):
     if request.user.is_authenticated:
         return redirect(request.META.get('HTTP_REFERER', '/'))
     if request.method == "POST":
-        print("POST request received for login")
         form = AuthenticationForm(request, data=request.POST)
-        print(request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
@@ -60,7 +66,6 @@ def user_login(request):
             messages.error(request, "Invalid username or password.")
     else:
         form = ""
-
     return render(request, "user_login.html", {"form": form})
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -76,3 +81,23 @@ def get_user_edit_form(request, user_id):
 def logout_view(request):
     logout(request)
     return redirect('user_login')
+
+@login_required
+def delete_user(request, user_id):
+    url = reverse('admin_dashboard') + "?view=users"
+    if not request.user.is_superuser:
+        messages.error(request, "You do not have permission to delete users.")
+        return redirect(url)
+    if str(request.user.id) == str(user_id):
+        messages.error(request, "You cannot delete your own account.")
+        return redirect(url)
+
+    user = get_object_or_404(User, id=user_id)
+
+    if user.is_superuser:
+        messages.error(request, "You cannot delete a superuser.")
+        return redirect(url)
+
+    user.delete()
+    messages.success(request, f"User '{user.username}' deleted successfully.")
+    return redirect(url)

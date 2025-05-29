@@ -13,7 +13,7 @@
       {% for task in tasks %}
         <tr>
           <td>{{ task.title }}</td>
-          <td>{{ task.assigned_to.email }}</td>
+          <td>{{ task.assigned_to.username }}</td>
           <td>
             {% if task.status == 'PENDING' %}
               <span class="badge bg-warning text-dark">🕒 Pending</span>

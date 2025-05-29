@@ -1,30 +1,16 @@
-from rest_framework import generics, permissions, status
+from rest_framework import generics, status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from core.models import Task, User
-from core.permissions import IsSuperAdmin
 from .serializers import TaskSerializer, TaskUpdateSerializer, UserSerializer
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth import logout
-from django.http import JsonResponse
-from django.views import View
 
 class TaskListCreateAPI(generics.ListCreateAPIView):
     serializer_class = TaskSerializer
-    # permission_classes = [permissions.IsAuthenticated]
+    queryset = Task.objects.all()
 
-    def get_queryset(self):
-        user = self.request.user
-        if user.role == 'SUPERADMIN':
-            return Task.objects.all()
-        elif user.role == 'ADMIN':
-            return Task.objects.filter(assigned_to__assigned_admin=user)
-        else:
-            return Task.objects.filter(assigned_to=user)
 
 class TaskUpdateAPI(generics.UpdateAPIView):
     serializer_class = TaskUpdateSerializer
-    # permission_classes = [permissions.IsAuthenticated]
     queryset = Task.objects.all()
 
     def get_object(self):
@@ -52,7 +38,6 @@ class TaskUpdateAPI(generics.UpdateAPIView):
                 return Response({
                     "error": "completion_report and worked_hours are required when completing a task."
                 }, status=status.HTTP_400_BAD_REQUEST)
-        print("Updating task with data:", data)
         response = super().update(request, *args, **kwargs)
         if response.status_code == status.HTTP_200_OK:
             return Response({
@@ -64,7 +49,6 @@ class TaskUpdateAPI(generics.UpdateAPIView):
 
 class TaskReportAPI(generics.RetrieveAPIView):
     serializer_class = TaskSerializer
-    # permission_classes = [permissions.IsAuthenticated]
     queryset = Task.objects.all()
 
     def get_object(self):

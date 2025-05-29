@@ -29,7 +29,7 @@
                 {{ user.assigned_admin.username }}
               </span>
             {% endif %}
-              </td>
+          </td>
           <td>
             {% if user.role == 'SUPERADMIN' %}
               <span class="badge bg-danger"><i class="bi bi-shield-fill-check me-1"></i>Super Admin</span>
@@ -45,20 +45,20 @@
           <td>
             <div class="btn-group" role="group" aria-label="User actions">
               {% if not user.is_superuser %}
-              <a href="{% url 'get_user_edit_form' user.id %}" class="btn btn-sm btn-outline-warning" title="Edit User">
-                <i class="bi bi-person-plus"></i>
-                <span class="d-none d-md-inline ms-1">Edit</span>
-              </a>
+                <a href="{% url 'get_user_edit_form' user.id %}" class="btn btn-sm btn-outline-warning" title="Edit User">
+                  <i class="bi bi-person-plus"></i>
+                  <span class="d-none d-md-inline ms-1">Edit</span>
+                </a>
               {% endif %}
             </div>
           </td>
           <td>
             <div class="btn-group" role="group" aria-label="User actions">
               {% if user.id != request.user.id and not user.is_superuser %}
-                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ user.id }}" title="Delete User">
-                  <i class="bi bi-trash"></i>
-                  <span class="d-none d-md-inline ms-1">Delete</span>
-                </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ user.id }}" title="Delete User">
+                    <i class="bi bi-trash"></i>
+                    <span class="d-none d-md-inline ms-1">Delete</span>
+                  </button>
               {% endif %}
             </div>
           </td>
@@ -75,7 +75,7 @@
                 </div>
                 <div class="modal-body">
                   <p>
-                    Are you sure you want to delete <strong>{{ user.email }}</strong>?
+                    Are you sure you want to delete <strong>{{ user.username }}</strong>?
                   </p>
                   <div class="alert alert-danger">
                     <i class="bi bi-exclamation-triangle me-2"></i>
@@ -90,7 +90,7 @@
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                  <form method="post" class="d-inline">
+                  <form method="post" action="{% url 'delete_user' user.id %}" class="d-inline">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Delete User</button>
                   </form>

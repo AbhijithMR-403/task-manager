@@ -40,7 +40,8 @@
                      name="title" 
                      value="{{ task.title }}" 
                      required
-                     placeholder="Enter task title...">
+                     placeholder="Enter task title..."
+                     {% if request.user.role == 'USER' %}readonly{% endif %}>
             </div>
 
             <!-- Description Field -->
@@ -52,7 +53,8 @@
                         id="description" 
                         name="description" 
                         rows="4" 
-                        placeholder="Enter task description...">{{ task.description }}</textarea>
+                        placeholder="Enter task description..."
+                        {% if request.user.role == 'USER' %}readonly{% endif %}>{{ task.description }}</textarea>
             </div>
 
             <!-- Row for Assigned To and Status -->
@@ -62,14 +64,18 @@
                 <label for="assigned_to" class="form-label fw-semibold">
                   <i class="bi bi-person-check text-primary me-2"></i>Assigned To
                 </label>
-                <select class="form-select" id="assigned_to" name="assigned_to" required>
+                <select class="form-select" id="assigned_to" name="assigned_to" required {% if request.user.role == 'USER' %}disabled{% endif %}>
                   {% for user in users %}
                     <option value="{{ user.id }}" {% if user.id == task.assigned_to.id %}selected{% endif %}>
-                      {{ user.email }}
+                      {{ user.username }}
                     </option>
                   {% endfor %}
                 </select>
               </div>
+              {% if request.user.role == 'USER' %}
+                <input type="hidden" name="assigned_to" value="{{ task.assigned_to.id }}">
+              {% endif %}
+
 
               <!-- Status Field -->
               <div class="col-md-6">
@@ -104,7 +110,7 @@
                        class="form-control" 
                        id="due_date" 
                        name="due_date" 
-                       value="{{ task.due_date|date:'Y-m-d' }}">
+                       value="{{ task.due_date|date:'Y-m-d' }}" {% if request.user.role == 'USER' %}readonly{% endif %}>
               </div>
 
               <!-- Worked Hours Field -->
