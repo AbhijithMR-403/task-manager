@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import admin_dashboard_view, delete_user, get_user_edit_form, logout_view, task_detail_view, home_page, user_login  # Add your template views here
+from .views import admin_dashboard_view, delete_task, delete_user, get_user_edit_form, logout_view, task_detail_view, home_page, user_login  # Add your template views here
 
 urlpatterns = [
     path('', home_page, name='home'),
@@ -10,6 +10,7 @@ urlpatterns = [
     path('logout/', logout_view, name='logout'),
     path('admin/get_user_update_form/<int:user_id>/', get_user_edit_form, name='get_user_edit_form'),
     path('delete-user/<int:user_id>/', delete_user, name='delete_user'),
+    path('task/delete/<int:task_id>/', delete_task, name='delete_task'),
 
     path('api/', include('core.api.urls')),
 ]

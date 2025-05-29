@@ -101,3 +101,16 @@ def delete_user(request, user_id):
     user.delete()
     messages.success(request, f"User '{user.username}' deleted successfully.")
     return redirect(url)
+
+@login_required
+def delete_task(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    url = reverse('admin_dashboard') + "?view=tasks"
+
+    if request.method == "POST":
+        task.delete()
+        messages.success(request, "Task deleted successfully.")
+        return redirect(url)
+
+    messages.error(request, "Invalid request.")
+    return redirect(url)
