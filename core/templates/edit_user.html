@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-6">
+
+      <!-- Header Section -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-gradient-primary text-white py-3">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <h3 class="mb-0">
+                <i class="bi bi-person-circle me-2"></i>User Details
+              </h3>
+              <small class="opacity-75">Edit and update user information</small>
+            </div>
+            <div class="text-end">
+              <span class="badge bg-light text-dark fs-6">
+                ID: #{{ user.id }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Form -->
+      <form method="post" id="userForm">
+        {% csrf_token %}
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4">
+            <!-- Username -->
+            <div class="mb-4">
+            <label for="username" class="form-label fw-semibold">
+                <i class="bi bi-person-fill text-primary me-2"></i>Username
+            </label>
+            <input type="text" class="form-control form-control-lg" id="username" name="username"
+                    value="{{ user.username }}" required placeholder="Enter username...">
+            </div>
+
+            <!-- Email -->
+            <div class="mb-4">
+              <label for="email" class="form-label fw-semibold">
+                <i class="bi bi-envelope-fill text-primary me-2"></i>Email
+              </label>
+              <input type="email" class="form-control form-control-lg" id="email" name="email"
+                     value="{{ user.email }}" placeholder="Enter email...">
+            </div>
+
+            <!-- Role -->
+            <div class="mb-4">
+              <label for="role" class="form-label fw-semibold">
+                <i class="bi bi-people-fill text-primary me-2"></i>Role
+              </label>
+              <select class="form-select" id="role" name="role" required>
+                <option value="ADMIN" {% if user.role == 'ADMIN' %} selected {% endif %}>🛡️ Admin</option>
+                <option value="USER" {% if user.role == 'USER' %}selected{% endif %}>👤 User</option>
+              </select>
+            </div>
+
+            <!-- Assigned to Admin -->
+            <div class="mb-4">
+            <label for="assigned_admin" class="form-label fw-semibold">
+                <i class="bi bi-person-check text-primary me-2"></i>Assigned to Admin
+            </label>
+            <select class="form-select" id="assigned_admin" name="assigned_admin">
+                <option value="">-- Select Admin --</option>
+                {% for admin in admins %}
+                <option value="{{ admin.id }}" {% if user.assigned_admin and user.assigned_admin.id == admin.id %}selected{% endif %}>
+                    {{ admin.username }}
+                </option>
+                {% endfor %}
+            </select>
+            </div>
+
+            <!-- Is Active -->
+            <div class="form-check form-switch mb-4">
+              <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
+                     {% if user.is_active %}checked{% endif %}>
+              <label class="form-check-label fw-semibold" for="is_active">
+                <i class="bi bi-check-circle text-primary me-2"></i>Active User
+              </label>
+            </div>
+
+          </div>
+
+          <!-- Form Actions -->
+          <div class="card-footer bg-white border-top py-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <a href="{% url 'admin_dashboard' %}?view=users" class="btn btn-outline-secondary">
+                  <i class="bi bi-arrow-left me-2"></i>Back to Users
+                </a>
+              </div>
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bi bi-check-circle me-2"></i>Update User
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <!-- Success/Error Messages -->
+      {% if messages %}
+        <div class="mt-3">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+              <i class="bi bi-info-circle me-2"></i>
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+<!-- Styles (unchanged) -->
+<style>
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+.card {
+  transition: all 0.3s ease;
+}
+.form-label {
+  color: #495057;
+  margin-bottom: 0.75rem;
+}
+.form-control,
+.form-select {
+  border: 1px solid #ced4da;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  transition: all 0.3s ease;
+}
+.form-control:hover,
+.form-select:hover {
+  border-color: #adb5bd;
+}
+.btn {
+  border-radius: 0.5rem;
+  font-weight: 500;
+  padding: 0.5rem 1.5rem;
+  transition: all 0.3s ease;
+}
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+@media (max-width: 768px) {
+  .card-body {
+    padding: 1.5rem !important;
+  }
+  .form-control-lg {
+    font-size: 1rem;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('userForm');
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const userId = "{{ user.id }}";  // Grabbed from context
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();  // Prevent default form submit
+
+    // Show spinner
+    submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Updating...';
+    submitBtn.disabled = true;
+
+    // Build form data
+    const formData = new FormData(form);
+    const data = {};
+    formData.forEach((value, key) => {
+      if (key === 'is_active') {
+        data[key] = form.elements[key].checked;
+      } else {
+        data[key] = value;
+      }
+    });
+
+    // CSRF Token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // Send AJAX request
+    fetch(`/api/users/${userId}/`, {
+  method: 'PUT',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-CSRFToken': csrfToken,
+  },
+  body: JSON.stringify(data),
+}).then(async response => {
+  const responseData = await response.json();
+  if (!response.ok) {
+    // Backend validation errors
+    if (response.status === 400 && typeof responseData === 'object') {
+      const errorMessages = [];
+      for (const field in responseData) {
+        const errors = responseData[field];
+        errorMessages.push(`${field}: ${errors.join(', ')}`);
+      }
+      alert("❌ Validation Error:\n" + errorMessages.join('\n'));
+    } else {
+      // Other errors
+      throw new Error(responseData?.detail || "Failed to update user.");
+    }
+  } else {
+    alert("✅ User updated successfully!");
+    // Optionally redirect or update UI
+  }
+})
+.catch(error => {
+  alert("❌ Error updating user: " + error.message);
+})
+.finally(() => {
+  submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Update User';
+  submitBtn.disabled = false;
+});
+
+  });
+});
+</script>
+{% endblock %}
+

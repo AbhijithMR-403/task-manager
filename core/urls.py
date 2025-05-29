@@ -1,12 +1,14 @@
 from django.urls import path, include
-from .views import admin_dashboard_view, task_detail_view, dashboard, user_login  # Add your template views here
+from .views import admin_dashboard_view, get_user_edit_form, logout_view, task_detail_view, home_page, user_login  # Add your template views here
 
 urlpatterns = [
-    path('dashboard/', dashboard, name='dashboard'),                          # Main dashboard (template view)
+    path('', home_page, name='home'),                          # Main dashboard (template view)
     path('admin/dashboard/', admin_dashboard_view, name='admin_dashboard'),
     path('task/<int:task_id>/', task_detail_view, name='task_detail'),
 
     path("login/", user_login, name="user_login"),
+    path('logout/', logout_view, name='logout'),
+    path('admin/get_user_update_form/<int:user_id>/', get_user_edit_form, name='get_user_edit_form'),
 
     path('api/', include('core.api.urls')),                         # DRF API routes
 ]

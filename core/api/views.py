@@ -5,8 +5,11 @@ from core.models import Task, User
 from core.permissions import IsSuperAdmin
 from .serializers import TaskSerializer, TaskUpdateSerializer, UserSerializer
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth import logout
+from django.http import JsonResponse
+from django.views import View
 
-class TaskListAPI(generics.ListAPIView):
+class TaskListCreateAPI(generics.ListCreateAPIView):
     serializer_class = TaskSerializer
     # permission_classes = [permissions.IsAuthenticated]
 
@@ -26,7 +29,7 @@ class TaskUpdateAPI(generics.UpdateAPIView):
 
     def get_object(self):
         task = super().get_object()
-        user = self.request.user
+        user = task.assigned_to
 
         # Check if the user is the assigned user
         if task.assigned_to == user:
@@ -49,7 +52,7 @@ class TaskUpdateAPI(generics.UpdateAPIView):
                 return Response({
                     "error": "completion_report and worked_hours are required when completing a task."
                 }, status=status.HTTP_400_BAD_REQUEST)
-        
+        print("Updating task with data:", data)
         response = super().update(request, *args, **kwargs)
         if response.status_code == status.HTTP_200_OK:
             return Response({
@@ -84,16 +87,3 @@ class TaskReportAPI(generics.RetrieveAPIView):
 class UserCreateUpdateAPI(generics.CreateAPIView, generics.UpdateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsSuperAdmin]  # Only SuperAdmin can access
-
-    def perform_create(self, serializer):
-        password = serializer.validated_data.pop('password', None)
-        if password:
-            serializer.validated_data['password'] = make_password(password)
-        serializer.save()
-
-    def perform_update(self, serializer):
-        password = serializer.validated_data.pop('password', None)
-        if password:
-            serializer.validated_data['password'] = make_password(password)
-        serializer.save()

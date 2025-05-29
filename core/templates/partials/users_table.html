@@ -1,13 +1,13 @@
-<!-- templates/partials/users_table.html -->
 <div class="table-responsive">
   <table class="table table-hover table-bordered align-middle">
     <thead class="table-dark">
       <tr>
         <th scope="col">#</th>
-        <th scope="col">Email</th>
+        <th scope="col">Username</th>
+        <th scope="col">Assign to</th>
         <th scope="col">Role</th>
         <th scope="col">Total Tasks</th>
-        <th scope="col" class="text-center">Change Role</th>
+        <th scope="col" class="text-center">Edit</th>
         <th scope="col" class="text-center">Delete</th>
       </tr>
     </thead>
@@ -18,22 +18,25 @@
           <td>
             <div class="d-flex align-items-center">
               <i class="bi bi-person-circle me-2 text-primary"></i>
-              {{ user.email }}
+              {{ user.username }}
             </div>
           </td>
+          <!-- Assign to Admin -->
           <td>
-            {% if user.role == "SUPERADMIN" %}
-              <span class="badge bg-danger">
-                <i class="bi bi-shield-fill-check me-1"></i>Super Admin
+            {% if user.assigned_admin %}
+              <span class="badge bg-secondary">
+                <i class="bi bi-person-check me-1"></i>
+                {{ user.assigned_admin.username }}
               </span>
-            {% elif user.role ==  "ADMIN" %}
-              <span class="badge bg-warning text-dark">
-                <i class="bi bi-person-gear me-1"></i>Admin
-              </span>
+            {% endif %}
+              </td>
+          <td>
+            {% if user.role == 'SUPERADMIN' %}
+              <span class="badge bg-danger"><i class="bi bi-shield-fill-check me-1"></i>Super Admin</span>
+            {% elif user.role == 'ADMIN' %}
+              <span class="badge bg-warning text-dark"><i class="bi bi-person-gear me-1"></i>Admin</span>
             {% else %}
-              <span class="badge bg-primary">
-                <i class="bi bi-person me-1"></i>User
-              </span>
+              <span class="badge bg-primary"><i class="bi bi-person me-1"></i>User</span>
             {% endif %}
           </td>
           <td>
@@ -41,156 +44,64 @@
           </td>
           <td>
             <div class="btn-group" role="group" aria-label="User actions">
-              
-              <!-- Role Toggle Buttons -->
-              {% if user.role ==  "ADMIN" and user.role ==  "SUPERADMIN" %}
-                <!-- Convert to User Button -->
-                <button type="button" 
-                        class="btn btn-sm btn-outline-primary" 
-                        data-bs-toggle="modal" 
-                        data-bs-target="#convertToUserModal{{ user.id }}"
-                        title="Convert to User">
-                  <i class="bi bi-person-dash"></i>
-                  <span class="d-none d-md-inline ms-1">To User</span>
-                </button>
-              {% elif user.role ==  "SUPERADMIN" %}
-                <!-- Convert to Admin Button -->
-                <button type="button" 
-                        class="btn btn-sm btn-outline-warning" 
-                        data-bs-toggle="modal" 
-                        data-bs-target="#convertToAdminModal{{ user.id }}"
-                        title="Convert to Admin">
-                  <i class="bi bi-person-plus"></i>
-                  <span class="d-none d-md-inline ms-1">To Admin</span>
-                </button>
+              {% if not user.is_superuser %}
+              <a href="{% url 'get_user_edit_form' user.id %}" class="btn btn-sm btn-outline-warning" title="Edit User">
+                <i class="bi bi-person-plus"></i>
+                <span class="d-none d-md-inline ms-1">Edit</span>
+              </a>
               {% endif %}
             </div>
-              </td>
+          </td>
           <td>
             <div class="btn-group" role="group" aria-label="User actions">
-
-              <!-- Delete User Button -->
-        {% if user.id != request.user.id %}
-                <button type="button" 
-                        class="btn btn-sm btn-outline-danger" 
-                        data-bs-toggle="modal" 
-                        data-bs-target="#deleteUserModal{{ user.id }}"
-                        title="Delete User">
+              {% if user.id != request.user.id and not user.is_superuser %}
+                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ user.id }}" title="Delete User">
                   <i class="bi bi-trash"></i>
                   <span class="d-none d-md-inline ms-1">Delete</span>
                 </button>
-        {% endif %}
-
+              {% endif %}
             </div>
           </td>
         </tr>
 
-        <!-- Convert to User Modal -->
-        {% if user.is_staff %}
-        <div class="modal fade" id="convertToUserModal{{ user.id }}" tabindex="-1" aria-labelledby="convertToUserModalLabel{{ user.id }}" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="convertToUserModalLabel{{ user.id }}">
-                  <i class="bi bi-person-dash me-2"></i>Convert to User
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <p>Are you sure you want to convert <strong>{{ user.email }}</strong> from Admin to User role?</p>
-                <div class="alert alert-warning">
-                  <i class="bi bi-exclamation-triangle me-2"></i>
-                  This will remove admin privileges from this user.
-                </div>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form method="post" class="d-inline">
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-person-dash me-1"></i>Convert to User
-                  </button>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        {% endif %}
-
-        <!-- Convert to Admin Modal -->
-        {% if not user.is_staff %}
-        <div class="modal fade" id="convertToAdminModal{{ user.id }}" tabindex="-1" aria-labelledby="convertToAdminModalLabel{{ user.id }}" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="convertToAdminModalLabel{{ user.id }}">
-                  <i class="bi bi-person-plus me-2"></i>Convert to Admin
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <p>Are you sure you want to convert <strong>{{ user.email }}</strong> from User to Admin role?</p>
-                <div class="alert alert-info">
-                  <i class="bi bi-info-circle me-2"></i>
-                  This will grant admin privileges to this user.
-                </div>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                {% comment %} <form method="post"  action="{% url 'convert_to_admin' user.id %}" class="d-inline"> {% endcomment %}
-                <form method="post" class="d-inline">
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-warning">
-                    <i class="bi bi-person-plus me-1"></i>Convert to Admin
-                  </button>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        {% endif %}
-
         <!-- Delete User Modal -->
-        {% if not user.is_superuser %}
-        <div class="modal fade" id="deleteUserModal{{ user.id }}" tabindex="-1" aria-labelledby="deleteUserModalLabel{{ user.id }}" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="deleteUserModalLabel{{ user.id }}">
-                  <i class="bi bi-trash me-2"></i>Delete User
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <p>Are you sure you want to delete <strong>{{ user.email }}</strong>?</p>
-                <div class="alert alert-danger">
-                  <i class="bi bi-exclamation-triangle me-2"></i>
-                  <strong>Warning:</strong> This action cannot be undone. All user data will be permanently deleted.
+        {% if user.id != request.user.id %}
+          <div class="modal fade" id="deleteUserModal{{ user.id }}" tabindex="-1" aria-labelledby="deleteUserModalLabel{{ user.id }}" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="deleteUserModalLabel{{ user.id }}"><i class="bi bi-trash me-2"></i>Delete User</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                {% if user.tasks.count > 0 %}
-                <div class="alert alert-warning">
-                  <i class="bi bi-exclamation-circle me-2"></i>
-                  This user has <strong>{{ user.tasks.count }}</strong> associated tasks that will also be affected.
+                <div class="modal-body">
+                  <p>
+                    Are you sure you want to delete <strong>{{ user.email }}</strong>?
+                  </p>
+                  <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This action cannot be undone. All user data will be permanently deleted.
+                  </div>
+                  {% if user.tasks.count > 0 %}
+                    <div class="alert alert-warning">
+                      <i class="bi bi-exclamation-circle me-2"></i>
+                      This user has <strong>{{ user.tasks.count }}</strong> associated tasks that will also be affected.
+                    </div>
+                  {% endif %}
                 </div>
-                {% endif %}
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form method="post" class="d-inline">
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-danger">
-                    <i class="bi bi-trash me-1"></i>Delete User
-                  </button>
-                </form>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                  <form method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Delete User</button>
+                  </form>
+                </div>
               </div>
             </div>
           </div>
-        </div>
         {% endif %}
-
       {% empty %}
         <tr>
-          <td colspan="5" class="text-center text-muted py-4">
+          <td colspan="6" class="text-center text-muted py-4">
             <i class="bi bi-people display-4 mb-3 d-block text-muted"></i>
             <h5 class="text-muted">No users found</h5>
             <p class="text-muted mb-0">There are no users to display at the moment.</p>
@@ -201,28 +112,27 @@
   </table>
 </div>
 
-<!-- Optional: Add some custom CSS for better mobile responsiveness -->
 <style>
-@media (max-width: 768px) {
-  .btn-group .btn span {
-    display: none !important;
+  @media (max-width: 768px) {
+    .btn-group .btn span {
+      display: none !important;
+    }
+  
+    .table-responsive {
+      font-size: 0.875rem;
+    }
   }
   
-  .table-responsive {
-    font-size: 0.875rem;
+  .badge {
+    font-size: 0.75em;
   }
-}
-
-.badge {
-  font-size: 0.75em;
-}
-
-.btn-group {
-  gap: 2px;
-}
-
-.modal-header {
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #dee2e6;
-}
+  
+  .btn-group {
+    gap: 2px;
+  }
+  
+  .modal-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+  }
 </style>
